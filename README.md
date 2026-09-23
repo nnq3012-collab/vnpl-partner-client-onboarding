@@ -351,11 +351,10 @@ python manage.py test onboarding
 ```
 
 ### Deploy (Render + Neon)
-- Build: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py seed`
-- Start: `gunicorn config.wsgi`
-- Env: `DATABASE_URL` (Neon), `SECRET_KEY`, `DEBUG=0`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS=https://<host>`,
-  optional `ESCALATION_CREDIT_LIMIT_VND`, `ESCALATION_PAYMENT_DAYS`.
-- First admin: `python manage.py createsuperuser` in the Render shell. Do **not** run `seed --demo` in production.
+- `render.yaml` is a Render Blueprint: Render dashboard → **New → Blueprint** → pick this repo. It builds, migrates and seeds on every deploy.
+- Set `DATABASE_URL` (Neon, direct connection, not `-pooler`) in the dashboard. `SECRET_KEY` is generated; the Render hostname is trusted automatically.
+- `SEED_ARGS=--demo` creates the demo users for UAT. Set it to empty for production, create the first admin with `python manage.py createsuperuser` in the Render shell, and change or deactivate the demo accounts.
+- Optional env: `ESCALATION_CREDIT_LIMIT_VND`, `ESCALATION_PAYMENT_DAYS`, `ALLOWED_HOSTS` (custom domain).
 
 ### Where things live
 - State machine, review rules, export: `onboarding/services.py`
