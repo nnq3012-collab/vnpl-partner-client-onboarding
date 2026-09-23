@@ -2,6 +2,8 @@
 
 **[English](#english)** · **[Tiếng Việt](#tiếng-việt)**
 
+Workflow diagram / Sơ đồ quy trình: [`docs/workflow.html`](docs/workflow.html) (download and open in a browser / tải về và mở bằng trình duyệt).
+
 ---
 
 ## English

@@ -1,0 +1,320 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VNPL Partner Approval Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F5F7; --surface:#FFFFFF; --ink:#1C2430; --muted:#5D6875; --grid:#D3D9E0;
+  --it-f:#ECEFF3; --it-s:#7A8796;
+  --req-f:#FFF3CC; --req-s:#C9981E;
+  --fin-f:#EFE7F7; --fin-s:#8B6BB8;
+  --legal-f:#E3ECF9; --legal-s:#4F7CC0;
+  --appr-f:#FBE8E4; --appr-s:#C4624F;
+  --exp-f:#E2F2E6; --exp-s:#4E9A62;
+  --sota-f:#E4EEF5; --sota-s:#5A8FB0;
+  --e-normal:#3B4654; --e-ok:#2F8A4E; --e-chg:#C9710C; --e-rej:#C43D3D; --e-data:#8A94A0;
+  --rej-f:#FCE9E9;
+  --sans:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#11161C; --surface:#1A2129; --ink:#E4E9EF; --muted:#9AA6B3; --grid:#2E3844;
+    --it-f:#232B35; --it-s:#8C99A8; --req-f:#3A3116; --req-s:#E0B84A; --fin-f:#2E2540; --fin-s:#B597E0;
+    --legal-f:#1F2D44; --legal-s:#7FA6E0; --appr-f:#3C2320; --appr-s:#E08A76; --exp-f:#1D3526; --exp-s:#6CC088;
+    --sota-f:#1C2F3D; --sota-s:#7FB2D3;
+    --e-normal:#C3CBD5; --e-ok:#5CC27E; --e-chg:#F0A040; --e-rej:#F07070; --e-data:#7E8A97; --rej-f:#3A1E1E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#11161C; --surface:#1A2129; --ink:#E4E9EF; --muted:#9AA6B3; --grid:#2E3844;
+  --it-f:#232B35; --it-s:#8C99A8; --req-f:#3A3116; --req-s:#E0B84A; --fin-f:#2E2540; --fin-s:#B597E0;
+  --legal-f:#1F2D44; --legal-s:#7FA6E0; --appr-f:#3C2320; --appr-s:#E08A76; --exp-f:#1D3526; --exp-s:#6CC088;
+  --sota-f:#1C2F3D; --sota-s:#7FB2D3;
+  --e-normal:#C3CBD5; --e-ok:#5CC27E; --e-chg:#F0A040; --e-rej:#F07070; --e-data:#7E8A97; --rej-f:#3A1E1E;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:grid;gap:24px}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+h1{font-size:26px;line-height:1.2;margin:0;font-weight:700;text-wrap:balance}
+.lede{margin:6px 0 0;color:var(--muted);max-width:68ch}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+button{font:500 13px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--grid);border-radius:6px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--legal-s);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12.5px;color:var(--muted);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.stage{background:var(--surface);border:1px solid var(--grid);border-radius:10px;overflow-x:auto}
+.stage svg{display:block}
+.stage.fit svg{width:100%;height:auto}
+.hint{font-size:12px;color:var(--muted);margin:-14px 0 0}
+h2{font-size:18px;margin:0 0 12px}
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.role{background:var(--surface);border:1px solid var(--grid);border-top:4px solid var(--c);border-radius:8px;padding:14px 16px}
+.role h3{margin:0;font-size:15px}
+.role .who{font:12px var(--mono);color:var(--muted);margin:2px 0 8px}
+.role ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.rules{background:var(--surface);border:1px solid var(--grid);border-radius:8px;padding:14px 16px}
+.rules ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.mono{font-family:var(--mono);font-size:.92em}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="h1"></h1>
+      <p class="lede" id="lede"></p>
+    </div>
+    <div class="controls">
+      <button id="b-vi" type="button">Tiếng Việt</button>
+      <button id="b-en" type="button">English</button>
+      <button id="b-fit" type="button"></button>
+    </div>
+  </header>
+
+  <div class="legend" id="legend"></div>
+  <div class="stage" id="stage"></div>
+  <p class="hint" id="hint"></p>
+
+  <section>
+    <h2 id="h-roles"></h2>
+    <div class="roles" id="roles"></div>
+  </section>
+
+  <section class="rules">
+    <h2 id="h-rules"></h2>
+    <ul id="rules"></ul>
+  </section>
+</div>
+
+<script>
+let lang = 'vi', fit = false;
+try { lang = localStorage.getItem('flow-lang') || 'vi'; } catch (e) {}
+const T = o => (o == null ? '' : typeof o === 'string' ? o : o[lang]);
+
+const UI = {
+  h1: {vi:'Luồng duyệt khách hàng & nhà cung cấp', en:'Client & vendor approval flow'},
+  lede: {vi:'Từ lúc tạo yêu cầu đến khi đối tác có trên Sota: ai làm gì, ở bước nào. Chữ trong ô nhỏ phía trên các bước là trạng thái hiển thị trong công cụ.',
+         en:'From request to partner in Sota: who does what, at which step. Small labels above steps are the status names shown in the tool.'},
+  fitOn: {vi:'Xem toàn bộ', en:'Fit to screen'}, fitOff: {vi:'Xem cỡ thật', en:'Actual size'},
+  hint: {vi:'Kéo ngang để xem hết sơ đồ, hoặc bấm “Xem toàn bộ”.', en:'Scroll sideways to see the whole diagram, or press “Fit to screen”.'},
+  roles: {vi:'Ai làm gì', en:'Who does what'},
+  rules: {vi:'Quy tắc chung', en:'Rules for everyone'},
+};
+
+const LANES = [
+  {id:'it',    y:0,   h:100, n:{vi:'Quản trị IT',en:'IT admin'}, w:'Admin'},
+  {id:'req',   y:100, h:140, n:{vi:'Người tạo yêu cầu',en:'Requester'}, w:'Sales · Procurement'},
+  {id:'fin',   y:240, h:180, n:{vi:'Tài chính',en:'Finance'}, w:'Finance'},
+  {id:'legal', y:420, h:180, n:{vi:'Pháp chế',en:'Legal'}, w:'Legal'},
+  {id:'appr',  y:600, h:140, n:{vi:'Cấp trên',en:'Approver'}, w:'Approver'},
+  {id:'exp',   y:740, h:180, n:{vi:'Ops xuất Sota',en:'Ops export'}, w:'Exporter'},
+  {id:'sota',  y:920, h:110, n:{vi:'Sota FMS',en:'Sota FMS'}, w:{vi:'hệ thống hiện tại',en:'existing system'}},
+];
+const W = 2520, H = 1030, LW = 160;
+
+const N = [
+  {x:250,y:50,h:50,l:'it',t:{vi:'Tạo tài khoản\ngán nhóm quyền',en:'Create accounts\nassign groups'}},
+  {x:430,y:50,h:50,l:'it',t:{vi:'DS nhân viên KD\n+ mã sales Sota',en:'Salesperson list\n+ Sota sales codes'}},
+  {x:250,y:170,shape:'start',l:'req',t:{vi:'Bắt đầu\nKH / NCC mới',en:'Start\nnew client / vendor'}},
+  {x:430,y:170,l:'req',t:{vi:'Tạo yêu cầu',en:'Create request'},s:{vi:'thông tin + link SharePoint',en:'details + SharePoint links'},tag:{vi:'Nháp',en:'Draft'}},
+  {x:610,y:170,l:'req',auto:true,t:{vi:'Gửi duyệt',en:'Submit'},s:{vi:'tự kiểm tra MST, trùng,\ntrường bắt buộc',en:'auto-checks MST,\nduplicates, required fields'}},
+  {x:970,y:170,l:'req',t:{vi:'Sửa & gửi lại',en:'Edit & resubmit'},s:{vi:'vòng duyệt mới',en:'starts a new round'},tag:{vi:'Yêu cầu chỉnh sửa',en:'Changes requested'}},
+  {x:790,y:405,shape:'bar',h:250,cap:{vi:'Đang duyệt · song song',en:'In review · parallel'}},
+  {x:970,y:310,l:'fin',t:{vi:'Duyệt Tài chính',en:'Finance review'},s:{vi:'checklist 7 mục',en:'7-item checklist'}},
+  {x:1150,y:310,shape:'diamond',l:'fin',t:{vi:'Quyết định?',en:'Decision?'}},
+  {x:1150,y:385,shape:'reject'},
+  {x:1870,y:310,l:'fin',t:{vi:'Đổi sales / nhập\nmã KH (khi cần)',en:'Change salesperson /\nclient code (if needed)'}},
+  {x:970,y:490,l:'legal',t:{vi:'Duyệt Pháp chế',en:'Legal review'},s:{vi:'checklist 8 mục',en:'8-item checklist'}},
+  {x:1150,y:490,shape:'diamond',l:'legal',t:{vi:'Quyết định?',en:'Decision?'}},
+  {x:1150,y:565,shape:'reject'},
+  {x:1330,y:405,shape:'bar',h:250,cap:{vi:'Cả hai đã duyệt',en:'Both approved'}},
+  {x:1330,y:670,shape:'diamond',l:'appr',auto:true,t:{vi:'Vượt\nngưỡng?',en:'Over\nthreshold?'}},
+  {x:1272,y:648,shape:'note',t:{vi:'hạn mức > 500 tr VND\nthanh toán > 45 ngày\nhợp đồng ngoài mẫu',en:'credit > 500M VND\nterms > 45 days\nnon-standard contract'}},
+  {x:1510,y:670,l:'appr',t:{vi:'Cấp trên duyệt',en:'Approver decides'},s:{vi:'Duyệt hoặc Từ chối',en:'Approve or Reject'},tag:{vi:'Chờ cấp trên duyệt',en:'Escalated'}},
+  {x:1690,y:670,shape:'reject'},
+  {x:1510,y:830,h:44,shape:'state',t:{vi:'Đã duyệt',en:'Approved'}},
+  {x:1690,y:830,l:'exp',t:{vi:'Hàng đợi\n“Sẵn sàng xuất Sota”',en:'Queue\n“Ready for Sota”'}},
+  {x:1870,y:830,l:'exp',t:{vi:'Xuất CSV cho Sota',en:'Export CSV for Sota'},s:{vi:'KH và NCC: file riêng',en:'separate client/vendor files'}},
+  {x:2050,y:830,shape:'diamond',l:'exp',auto:true,t:{vi:'Đủ trường\nSota?',en:'Sota fields\ncomplete?'}},
+  {x:2050,y:900,w:190,h:26,shape:'chip',t:{vi:'Ngoại lệ: bị loại, ghi lý do',en:'Exception: left out, reason logged'}},
+  {x:2230,y:975,l:'sota',t:{vi:'Import file vào Sota',en:'Import file into Sota'},s:{vi:'trạng thái: Đã xuất Sota',en:'status: Exported to Sota'}},
+  {x:2410,y:975,l:'sota',t:{vi:'Tạo Job / lô hàng',en:'Create job / shipment'},s:{vi:'quy trình Sota hiện tại',en:'existing Sota process'}},
+];
+
+// [points, style, label, labelX, labelY, anchor]
+const E = [
+  [[[325,50],[355,50]]],
+  [[[430,75],[430,142]],'data',{vi:'chọn sales',en:'pick salesperson'},438,118,'start'],
+  [[[305,170],[355,170]]],
+  [[[505,170],[535,170]]],
+  [[[610,198],[610,222],[790,222],[790,280]]],
+  [[[895,170],[685,170]],'chg',{vi:'gửi lại',en:'resubmit'},790,162,'middle'],
+  [[[795,310],[895,310]]],
+  [[[795,490],[895,490]]],
+  [[[1045,310],[1102,310]]],
+  [[[1045,490],[1102,490]]],
+  [[[1198,310],[1325,310]],'ok',{vi:'Duyệt / có ĐK',en:'Approve / w. cond.'},1262,302,'middle'],
+  [[[1198,490],[1325,490]],'ok',{vi:'Duyệt / có ĐK',en:'Approve / w. cond.'},1262,482,'middle'],
+  [[[1150,274],[1150,170],[1045,170]],'chg',{vi:'Yêu cầu chỉnh sửa',en:'Request changes'},1142,262,'end'],
+  [[[1150,454],[1150,436],[1240,436],[1240,225],[1150,225]],'chg-join'],
+  [[[1150,346],[1150,372]],'rej'],
+  [[[1150,526],[1150,552]],'rej'],
+  [[[1330,530],[1330,634]]],
+  [[[1378,670],[1435,670]],null,{vi:'Có',en:'Yes'},1404,662,'middle'],
+  [[[1330,706],[1330,830],[1435,830]],null,{vi:'Không',en:'No'},1338,796,'start'],
+  [[[1510,698],[1510,808]],'ok',{vi:'Duyệt',en:'Approve'},1518,760,'start'],
+  [[[1585,670],[1642,670]],'rej'],
+  [[[1585,830],[1615,830]]],
+  [[[1765,830],[1795,830]]],
+  [[[1945,830],[2002,830]]],
+  [[[2050,866],[2050,887]],null,{vi:'Không',en:'No'},2058,881,'start'],
+  [[[1955,900],[1690,900],[1690,858]],'chg',{vi:'bổ sung dữ liệu, xuất lại',en:'fix data, export again'},1822,892,'middle'],
+  [[[2098,830],[2230,830],[2230,947]],'ok',{vi:'Có',en:'Yes'},2150,822,'middle'],
+  [[[2305,975],[2335,975]]],
+  [[[1870,338],[1870,762],[1690,762],[1690,802]],'data',{vi:'cờ “Thay đổi sau khi xuất”',en:'flag “Changed since export”'},1880,560,'start'],
+];
+
+const STYLE = {
+  null:{c:'--e-normal'}, ok:{c:'--e-ok'}, chg:{c:'--e-chg',d:'6 4'}, 'chg-join':{c:'--e-chg',d:'6 4',noArrow:true},
+  rej:{c:'--e-rej'}, data:{c:'--e-data',d:'2 4'},
+};
+
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function lines(cx, cy, title, sub) {
+  const tl = T(title).split('\n'), sl = sub ? T(sub).split('\n') : [];
+  const total = tl.length*15 + sl.length*13 + (sl.length ? 2 : 0);
+  let y = cy - total/2 + 11, out = '';
+  tl.forEach(l => { out += `<text x="${cx}" y="${y}" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">${esc(l)}</text>`; y += 15; });
+  y += 2;
+  sl.forEach(l => { out += `<text x="${cx}" y="${y}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${esc(l)}</text>`; y += 13; });
+  return out;
+}
+
+function svg() {
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(T(UI.h1))}" font-family="Be Vietnam Pro, system-ui, sans-serif"><defs>`;
+  for (const k of ['--e-normal','--e-ok','--e-chg','--e-rej','--e-data'])
+    s += `<marker id="m${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(${k})"/></marker>`;
+  s += `</defs><rect width="${W}" height="${H}" fill="var(--surface)"/>`;
+  for (const L of LANES) {
+    s += `<rect x="0" y="${L.y}" width="${LW}" height="${L.h}" fill="var(--${L.id}-f)"/>`;
+    s += `<line x1="0" x2="${W}" y1="${L.y+L.h}" y2="${L.y+L.h}" stroke="var(--grid)"/>`;
+    s += `<text x="16" y="${L.y+L.h/2-2}" font-size="14" font-weight="700" fill="var(--ink)">${esc(T(L.n))}</text>`;
+    s += `<text x="16" y="${L.y+L.h/2+15}" font-size="10.5" font-family="JetBrains Mono, monospace" fill="var(--muted)">${esc(T(L.w))}</text>`;
+  }
+  s += `<line x1="${LW}" x2="${LW}" y1="0" y2="${H}" stroke="var(--grid)"/>`;
+
+  for (const [pts, st, label, lx, ly, anchor] of E) {
+    const S = STYLE[st ?? null];
+    s += `<path d="M${pts.map(p => p.join(' ')).join('L')}" fill="none" stroke="var(${S.c})" stroke-width="1.6"${S.d ? ` stroke-dasharray="${S.d}"` : ''}${S.noArrow ? '' : ` marker-end="url(#m${S.c})"`}/>`;
+    if (label) s += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="10.5" font-weight="500" fill="var(${S.c})" stroke="var(--surface)" stroke-width="4" paint-order="stroke">${esc(T(label))}</text>`;
+  }
+
+  for (const n of N) {
+    const f = n.l ? `var(--${n.l}-f)` : 'var(--surface)', st = n.l ? `var(--${n.l}-s)` : 'var(--ink)';
+    const dash = n.auto ? ' stroke-dasharray="5 3"' : '';
+    if (n.shape === 'bar') {
+      s += `<rect x="${n.x-5}" y="${n.y-n.h/2}" width="10" height="${n.h}" rx="2" fill="var(--e-normal)"/>`;
+      s += `<text x="${n.x+10}" y="${n.y-n.h/2-8}" font-size="10.5" font-weight="600" fill="var(--muted)">${esc(T(n.cap))}</text>`;
+    } else if (n.shape === 'note') {
+      T(n.t).split('\n').forEach((l, i) => { s += `<text x="${n.x}" y="${n.y+i*13}" text-anchor="end" font-size="10.5" fill="var(--muted)">${esc(l)}</text>`; });
+    } else if (n.shape === 'start') {
+      s += `<ellipse cx="${n.x}" cy="${n.y}" rx="55" ry="30" fill="${f}" stroke="${st}" stroke-width="1.5"/>` + lines(n.x, n.y, n.t);
+    } else if (n.shape === 'diamond') {
+      s += `<polygon points="${n.x},${n.y-36} ${n.x+48},${n.y} ${n.x},${n.y+36} ${n.x-48},${n.y}" fill="${f}" stroke="${st}" stroke-width="1.5"${dash}/>`;
+      s += lines(n.x, n.y, n.t).replace(/font-size="12.5"/g, 'font-size="11"');
+    } else if (n.shape === 'reject' || n.shape === 'chip') {
+      const w = n.w || 96, h = n.h || 26, t = n.t || {vi:'✕ Từ chối',en:'✕ Rejected'};
+      s += `<rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="${h/2}" fill="var(--rej-f)" stroke="var(--e-rej)" stroke-width="1.3"/>`;
+      s += `<text x="${n.x}" y="${n.y+4}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--e-rej)">${esc(T(t))}</text>`;
+    } else if (n.shape === 'state') {
+      s += `<rect x="${n.x-75}" y="${n.y-n.h/2}" width="150" height="${n.h}" rx="22" fill="var(--exp-f)" stroke="var(--e-ok)" stroke-width="2.2"/>` + lines(n.x, n.y, n.t);
+    } else {
+      const w = 150, h = n.h || 56;
+      s += `<rect x="${n.x-w/2}" y="${n.y-h/2}" width="${w}" height="${h}" rx="7" fill="${f}" stroke="${st}" stroke-width="1.5"${dash}/>` + lines(n.x, n.y, n.t, n.s);
+      if (n.tag) s += `<text x="${n.x-w/2+2}" y="${n.y-h/2-7}" font-size="10" font-family="JetBrains Mono, monospace" fill="${st}">● ${esc(T(n.tag))}</text>`;
+    }
+  }
+  return s + '</svg>';
+}
+
+const LEGEND = [
+  [`<svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="var(--req-f)" stroke="var(--req-s)"/></svg>`, {vi:'Bước do người làm',en:'Step done by a person'}],
+  [`<svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="var(--surface)" stroke="var(--muted)" stroke-dasharray="4 2"/></svg>`, {vi:'Hệ thống tự kiểm tra',en:'Automatic system check'}],
+  [`<svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="var(--e-ok)" stroke-width="2"/></svg>`, {vi:'Duyệt',en:'Approve'}],
+  [`<svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="var(--e-chg)" stroke-width="2" stroke-dasharray="6 4"/></svg>`, {vi:'Trả về / làm lại',en:'Sent back / redo'}],
+  [`<svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="var(--e-rej)" stroke-width="2"/></svg>`, {vi:'Từ chối (kết thúc)',en:'Reject (final)'}],
+  [`<svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" stroke="var(--e-data)" stroke-width="2" stroke-dasharray="2 4"/></svg>`, {vi:'Dữ liệu / khi cần',en:'Data / when needed'}],
+  [`<span class="mono" style="color:var(--muted)">●</span>`, {vi:'Trạng thái trong công cụ',en:'Status shown in the tool'}],
+];
+
+const ROLES = [
+  {c:'--req-s', n:{vi:'Người tạo yêu cầu',en:'Requester'}, w:{vi:'Sales → menu “Khách hàng” · Mua hàng/Ops → “Nhà cung cấp”',en:'Sales → “Khách hàng” · Procurement/Ops → “Nhà cung cấp”'}, s:[
+    {vi:'Tạo yêu cầu, điền thông tin, dán link SharePoint, thêm người liên hệ.',en:'Create the request, fill details, paste SharePoint links, add a contact.'},
+    {vi:'Chọn đúng nhân viên kinh doanh phụ trách trên Sota (không nhất thiết là mình).',en:'Pick the salesperson who owns the partner in Sota (not necessarily you).'},
+    {vi:'Gửi bằng hành động “Gửi duyệt”. Trùng MST/tên → nhập “Lý do tạo dù trùng”.',en:'Submit with the “Gửi duyệt” action. Duplicate MST/name → fill the reason.'},
+    {vi:'Bị “Yêu cầu chỉnh sửa”: đọc bình luận, sửa, gửi lại.',en:'On “Changes requested”: read the comment, edit, resubmit.'},
+  ]},
+  {c:'--fin-s', n:{vi:'Tài chính',en:'Finance'}, w:{vi:'menu “Duyệt Tài chính”',en:'menu “Duyệt Tài chính”'}, s:[
+    {vi:'Lọc “Chờ tôi duyệt”, điền checklist 7 mục, chọn quyết định.',en:'Filter “Chờ tôi duyệt”, fill the 7-item checklist, decide.'},
+    {vi:'Không duyệt thẳng → bắt buộc nhận xét. Duyệt có điều kiện → điều kiện vào file Sota.',en:'Anything but a plain approve needs a comment. Conditions go into the Sota file.'},
+    {vi:'Sau duyệt: nhập mã KH, đổi sales khi cần → tự gắn cờ để xuất lại.',en:'After approval: enter client code, change salesperson → flagged for re-export.'},
+  ]},
+  {c:'--legal-s', n:{vi:'Pháp chế',en:'Legal'}, w:{vi:'menu “Duyệt Pháp chế”',en:'menu “Duyệt Pháp chế”'}, s:[
+    {vi:'Checklist 8 mục, cùng quy tắc với Tài chính, duyệt song song.',en:'8-item checklist, same rules as Finance, in parallel.'},
+    {vi:'Không dùng hợp đồng mẫu → chọn “Không” + tóm tắt sai khác → chuyển cấp trên.',en:'Non-standard contract → answer “Không” + summary → escalates.'},
+  ]},
+  {c:'--appr-s', n:{vi:'Cấp trên',en:'Approver'}, w:{vi:'menu “Duyệt cấp trên”',en:'menu “Duyệt cấp trên”'}, s:[
+    {vi:'Chỉ nhận yêu cầu vượt ngưỡng: hạn mức > 500 triệu VND, thanh toán > 45 ngày, hoặc hợp đồng ngoài mẫu.',en:'Only sees escalations: credit > 500M VND, terms > 45 days, or non-standard contract.'},
+    {vi:'Duyệt hoặc Từ chối (từ chối cần nhận xét).',en:'Approve or Reject (reject needs a comment).'},
+  ]},
+  {c:'--exp-s', n:{vi:'Ops xuất Sota',en:'Ops export'}, w:{vi:'menu “Khách hàng” / “Nhà cung cấp”',en:'menu “Khách hàng” / “Nhà cung cấp”'}, s:[
+    {vi:'Lọc “Sẵn sàng xuất Sota”, chọn dòng, hành động “Xuất CSV cho Sota”.',en:'Filter “Sẵn sàng xuất Sota”, tick rows, run “Xuất CSV cho Sota”.'},
+    {vi:'Dòng thiếu dữ liệu bị loại, không bao giờ xuất thiếu. Xem lý do, bổ sung, xuất lại.',en:'Incomplete rows are left out, never half-exported. Fix and export again.'},
+    {vi:'Mỗi lô được lưu ở “Lô xuất Sota”.',en:'Every batch is kept under “Lô xuất Sota”.'},
+  ]},
+  {c:'--it-s', n:{vi:'Quản trị IT',en:'IT admin'}, w:{vi:'menu “Người dùng”, “Nhân viên kinh doanh”',en:'menus “Người dùng”, “Nhân viên kinh doanh”'}, s:[
+    {vi:'Tạo tài khoản với mật khẩu tạm, gán nhóm, mở khoá khi cần.',en:'Create accounts with a temporary password, assign groups, unlock.'},
+    {vi:'Giữ đủ mã sales Sota cho mọi nhân viên kinh doanh, nếu không KH sẽ bị loại khi xuất.',en:'Keep a Sota code on every salesperson, or their clients will not export.'},
+  ]},
+  {c:'--sota-s', n:{vi:'Sota FMS',en:'Sota FMS'}, w:{vi:'hệ thống hiện tại',en:'existing system'}, s:[
+    {vi:'Import file KH / NCC; ops tạo Job và lô hàng như quy trình hiện tại.',en:'Import the client / vendor file; ops create jobs as they do today.'},
+  ]},
+];
+
+const RULES = [
+  {vi:'Không ai được duyệt yêu cầu do chính mình tạo.',en:'Nobody can review their own request.'},
+  {vi:'Tài chính và Pháp chế duyệt song song; cần cả hai đồng ý.',en:'Finance and Legal review in parallel; both must agree.'},
+  {vi:'Gửi lại sau “Yêu cầu chỉnh sửa” = duyệt lại từ đầu; lịch sử cũ vẫn giữ.',en:'Resubmitting restarts both reviews; earlier history stays visible.'},
+  {vi:'Từ chối là kết thúc. Muốn làm lại thì tạo yêu cầu mới.',en:'Rejected is final. Start a new request to try again.'},
+  {vi:'Không xoá được gì; mọi thao tác được ghi vào “Nhật ký”.',en:'Nothing can be deleted; every action is recorded in “Nhật ký”.'},
+  {vi:'Tài liệu để trên SharePoint, công cụ chỉ lưu link. Không nhập số tài khoản ngân hàng, CCCD/hộ chiếu.',en:'Documents stay in SharePoint; only links here. No bank account or ID numbers.'},
+];
+
+const $ = id => document.getElementById(id);
+function render() {
+  document.documentElement.lang = lang;
+  $('h1').textContent = T(UI.h1);
+  $('lede').textContent = T(UI.lede);
+  $('hint').textContent = T(UI.hint);
+  $('h-roles').textContent = T(UI.roles);
+  $('h-rules').textContent = T(UI.rules);
+  $('b-fit').textContent = T(fit ? UI.fitOff : UI.fitOn);
+  $('b-vi').setAttribute('aria-pressed', lang === 'vi');
+  $('b-en').setAttribute('aria-pressed', lang === 'en');
+  $('stage').classList.toggle('fit', fit);
+  $('stage').innerHTML = svg();
+  $('legend').innerHTML = LEGEND.map(([ic, t]) => `<span>${ic}${esc(T(t))}</span>`).join('');
+  $('roles').innerHTML = ROLES.map(r => `<article class="role" style="--c:var(${r.c})"><h3>${esc(T(r.n))}</h3><div class="who">${esc(T(r.w))}</div><ul>${r.s.map(x => `<li>${esc(T(x))}</li>`).join('')}</ul></article>`).join('');
+  $('rules').innerHTML = RULES.map(x => `<li>${esc(T(x))}</li>`).join('');
+}
+function setLang(l) { lang = l; try { localStorage.setItem('flow-lang', l); } catch (e) {} render(); }
+$('b-vi').onclick = () => setLang('vi');
+$('b-en').onclick = () => setLang('en');
+$('b-fit').onclick = () => { fit = !fit; render(); };
+render();
+</script>
